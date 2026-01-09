@@ -1,8 +1,8 @@
-
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from supabase import create_client
 from fastapi.responses import JSONResponse
+from supabase import create_client
+
 
 db_url = "https://cujtcsptszocpxbogbzn.supabase.co"
 db_key = "sb_publishable_U8TJ3usJyNH64THobkXDzw_v4NSpXyb"
@@ -10,7 +10,6 @@ db_key = "sb_publishable_U8TJ3usJyNH64THobkXDzw_v4NSpXyb"
 
 db = create_client(db_url, db_key)
    
-
 app = FastAPI(title="Royal Bank")
 
 # ---------- MODELS ----------
@@ -64,8 +63,8 @@ def get_transactions():
 @app.post("/transactions", status_code=201)
 def transfer(tx: TransactionCreate):
 
-    src = db.table("Accounts").select("*").eq("account_no", str(tx.source)).execute()
-    dest = db.table("Accounts").select("*").eq("account_no", str(tx.dest)).execute()
+    src = db.table("Accounts").select("*").eq("account_no", tx.source).execute()
+    dest = db.table("Accounts").select("*").eq("account_no", tx.dest).execute()
 
     if not src.data:
         raise HTTPException(404, "Source account not found")
@@ -78,18 +77,20 @@ def transfer(tx: TransactionCreate):
     if src_balance < tx.amount:
         raise HTTPException(400, "Insufficient balance")
 
-    # update balances (convert back to text)
+    # update balances
     db.table("Accounts").update({
-        "balance": str(src_balance - tx.amount)
-    }).eq("account_no", str(tx.source)).execute()
+        "balance": src_balance - tx.amount
+    }).eq("account_no", tx.source).execute()
 
     db.table("Accounts").update({
-        "balance": str(dest_balance + tx.amount)
-    }).eq("account_no", str(tx.dest)).execute()
+        "balance": dest_balance + tx.amount
+    }).eq("account_no", tx.dest).execute()
 
+    # log transactions
     db.table("Transection").insert([
-        {"account_no": str(tx.source), "amount": str(tx.amount), "type": "debit"},
-        {"account_no": str(tx.dest), "amount": str(tx.amount), "type": "credit"}
+        {"account_no": tx.source, "amount": tx.amount, "type": "debit"},
+        {"account_no": tx.dest, "amount": tx.amount, "type": "credit"}
     ]).execute()
 
     return {"message": "Transfer successful"}
+

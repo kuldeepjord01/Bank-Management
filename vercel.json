@@ -1,0 +1,14 @@
+{
+    "builds": [
+      {
+        "src": "bankBE.py",
+        "use": "@vercel/python"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "bankBE.py"
+      }
+    ]
+  }

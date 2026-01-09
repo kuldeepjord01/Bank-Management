@@ -1,19 +1,21 @@
 
 import streamlit as st
 import requests
+from fastapi.responses import JSONResponse
 
 BASE_URL = "http://127.0.0.1:8000"
 
-st.title("🏦 Royal Bank")
+st.title("🏦Royal Bank")
 
 tabs = st.tabs(["Accounts", "Transactions"])
 
 @st.dialog("Add New Account")
 def add_account():
-    acc_no = st.number_input("Account Number", step=1)
+    acc_no = st.text_input("Account Number")
     username = st.text_input("User Name")
-    balance = st.number_input("Opening Balance")
-    if st.button("Create Account"):
+    balance = st.text_input("Balance")
+
+    if st.button("Create Account", type="primary"):
         res = requests.post(
             f"{BASE_URL}/accounts",
             json={
@@ -32,11 +34,11 @@ def add_account():
 
 @st.dialog("Transfer Amount")
 def transfer():
-    src = st.number_input("Source Account", step=1)
-    dest = st.number_input("Destination Account", step=1)
-    amount = st.number_input("Amount")
+    src = st.text_input("Source Account")
+    dest = st.text_input("Destination Account")
+    amount = st.text_input("Amount")
 
-    if st.button("Transfer"):
+    if st.button("Transfer", type="primary"):
         res = requests.post(
             f"{BASE_URL}/transactions",
             json={
@@ -72,3 +74,4 @@ with tabs[1]:
     res = requests.get(f"{BASE_URL}/transactions")
     if res.ok:
         st.dataframe(res.json(), use_container_width=True)
+
